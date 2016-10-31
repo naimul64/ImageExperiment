@@ -20,6 +20,8 @@ public class ImageResizer {
 
         RGBA[][] rgbValueArray = getImageRgbValue(bufferedImage);
 
+        exportImage(rgbValueArray, bufferedImage.getHeight(), bufferedImage.getWidth());
+
         System.out.println("\nH: " + ddimension.getHeight() + " W " + ddimension.getWidth());
 
     }
@@ -71,9 +73,6 @@ public class ImageResizer {
             System.out.println("I = " + h + " J = " + w);
         }
 
-
-        exportImage(imageRgbValue, height, width);
-
         return imageRgbValue;
     }
 
@@ -93,7 +92,10 @@ public class ImageResizer {
             ImageIO.write(bufferedImage, "png", outputfile);
         } catch (IOException e) {
             System.out.println("Failed to create image");
+            return;
         }
+
+        System.out.println("Successfully Exported Image!");
     }
 
     private RGBA getPixelRgba(int pixel) {
