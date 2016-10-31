@@ -2,11 +2,13 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Created by insan on 10/31/16.
  */
 public class ImageResizer {
+    Logger logger = Logger.getLogger(this.getClass().getName().toString());
     void getImageFile(){
         BufferedImage img = null;
         try {
