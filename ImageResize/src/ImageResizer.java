@@ -13,10 +13,12 @@ import java.util.logging.Logger;
  */
 public class ImageResizer {
     Logger logger = Logger.getLogger(this.getClass().getName().toString());
-    void getImageFile(){
-        Integer height, width;
+
+    void getImageFile() {
         BufferedImage bufferedImage = getReadImage();
         _2Ddimension ddimension = getImageDimension(bufferedImage);
+
+        RGBA[][] rgbValueArray = getImageRgbValue(bufferedImage);
 
         System.out.println("\nH: " + ddimension.getHeight() + " W " + ddimension.getWidth());
 
@@ -27,7 +29,7 @@ public class ImageResizer {
         return ddimension.setHeight(img.getHeight()).setWidth(img.getWidth());
     }
 
-    BufferedImage getReadImage() {
+    private BufferedImage getReadImage() {
         BufferedImage img = null;
         Path path = null;
         try {
@@ -46,5 +48,62 @@ public class ImageResizer {
         }
 
         return img;
+    }
+
+    private RGBA[][] getImageRgbValue(BufferedImage bufferedImage) {
+        Integer height, width;
+        _2Ddimension ddimension = getImageDimension(bufferedImage);
+        height = ddimension.getHeight();
+        width = ddimension.getWidth();
+        RGBA[][] imageRgbValue = new RGBA[height][width];
+
+        int h=0,w=0;
+
+        try{
+            for (h = 0; h < height; h++) {
+                for (w = 0; w < width; w++) {
+                    int pixel = bufferedImage.getRGB(w, h);
+                    RGBA rgba = getPixelRgba(pixel);
+                    imageRgbValue[h][w] = rgba;
+                }
+            }
+        } catch (Exception e){
+            System.out.println("I = " + h + " J = " + w);
+        }
+
+
+        exportImage(imageRgbValue, height, width);
+
+        return imageRgbValue;
+    }
+
+    private void exportImage(RGBA[][] imageRgbaValue, int height, int width) {
+        BufferedImage bufferedImage = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                RGBA rgba = imageRgbaValue[i][j];
+                int pixel = (rgba.getAlpha() << 24) | (rgba.getRed() << 16) | (rgba.getGreen() << 8) | rgba.getBlue();
+                bufferedImage.setRGB(i, j, pixel);
+            }
+        }
+
+        try {
+            // retrieve image
+            File outputfile = new File("saved.png");
+            ImageIO.write(bufferedImage, "png", outputfile);
+        } catch (IOException e) {
+            System.out.println("Failed to create image");
+        }
+    }
+
+    private RGBA getPixelRgba(int pixel) {
+        int alpha = (pixel >> 24) & 0xff;
+        int red = (pixel >> 16) & 0xff;
+        int green = (pixel >> 8) & 0xff;
+        int blue = (pixel) & 0xff;
+
+        RGBA rgba = new RGBA();
+
+        return rgba.setRed(red).setGreen(green).setBlue(blue).setAlpha(alpha);
     }
 }
