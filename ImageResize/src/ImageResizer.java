@@ -20,7 +20,9 @@ public class ImageResizer {
 
         RGBA[][] rgbValueArray = getImageRgbValue(bufferedImage);
 
-        exportImage(rgbValueArray, bufferedImage.getHeight(), bufferedImage.getWidth());
+        //exportImage(rgbValueArray, bufferedImage.getHeight(), bufferedImage.getWidth());
+
+        resizeImageByHalf(rgbValueArray, ddimension.getHeight(), ddimension.getWidth());
 
         System.out.println("\nH: " + ddimension.getHeight() + " W " + ddimension.getWidth());
 
@@ -43,9 +45,9 @@ public class ImageResizer {
 
         try {
             img = ImageIO.read(new File(path.getParent().getParent().getParent() + "/Images/mountain.jpeg"));
-            System.out.print("Successfully loaded image");
+            System.out.println("Successfully loaded image");
         } catch (IOException e) {
-            System.out.print("Sorry failed to load image");
+            System.out.println("Sorry failed to load image");
             return null;
         }
 
@@ -59,9 +61,9 @@ public class ImageResizer {
         width = ddimension.getWidth();
         RGBA[][] imageRgbValue = new RGBA[height][width];
 
-        int h=0,w=0;
+        int h = 0, w = 0;
 
-        try{
+        try {
             for (h = 0; h < height; h++) {
                 for (w = 0; w < width; w++) {
                     int pixel = bufferedImage.getRGB(w, h);
@@ -69,7 +71,7 @@ public class ImageResizer {
                     imageRgbValue[h][w] = rgba;
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("I = " + h + " J = " + w);
         }
 
@@ -107,5 +109,42 @@ public class ImageResizer {
         RGBA rgba = new RGBA();
 
         return rgba.setRed(red).setGreen(green).setBlue(blue).setAlpha(alpha);
+    }
+
+    private void resizeImageByHalf(RGBA[][] imagePixelsRGBA, Integer height, Integer width) {
+        RGBA[][] meanedRgbArray = new RGBA[height / 2][width / 2];
+        int a = 0, b = 0, i = 0, j = 0;
+        for (a = 0, i = 0; i < height; i += 2, a++) {
+            if(a == height/2){continue;}
+            for (b= 0 , j = 0; j < width; j += 2, b++) {
+                if (b==width/2){continue;}
+                try {
+                    RGBA rgba = new RGBA();
+                    rgba.setAlpha((imagePixelsRGBA[i][j].getAlpha() +
+                            imagePixelsRGBA[i + 1][j].getAlpha() +
+                            imagePixelsRGBA[i + 1][j + 1].getAlpha() +
+                            imagePixelsRGBA[i][j + 1].getAlpha()) / 4);
+                    rgba.setRed((imagePixelsRGBA[i][j].getRed() +
+                            imagePixelsRGBA[i + 1][j].getRed() +
+                            imagePixelsRGBA[i + 1][j + 1].getRed() +
+                            imagePixelsRGBA[i][j + 1].getRed()) / 4);
+                    rgba.setGreen((imagePixelsRGBA[i][j].getGreen() +
+                            imagePixelsRGBA[i + 1][j].getGreen() +
+                            imagePixelsRGBA[i + 1][j + 1].getGreen() +
+                            imagePixelsRGBA[i][j + 1].getGreen()) / 4);
+                    rgba.setBlue((imagePixelsRGBA[i][j].getBlue() +
+                            imagePixelsRGBA[i][j].getBlue() +
+                            imagePixelsRGBA[i][j].getBlue() +
+                            imagePixelsRGBA[i][j].getBlue()) / 4);
+
+                    meanedRgbArray[a][b] = rgba;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println(" a " + a + " b " + b + " i " + i + " j " + j);
+                }
+            }
+        }
+
+        exportImage(meanedRgbArray, height / 2, width / 2);
     }
 }
