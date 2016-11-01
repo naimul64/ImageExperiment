@@ -3,9 +3,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -13,6 +14,12 @@ import java.util.logging.Logger;
  */
 public class ImageResizer {
     Logger logger = Logger.getLogger(this.getClass().getName().toString());
+
+    enum MeanOption {
+        ARITHMATIC_MEAN,
+        GEOMETRIC_MEAN,
+        HARMONIC_MEAN
+    }
 
     void getImageFile() {
         BufferedImage bufferedImage = getReadImage();
@@ -120,22 +127,35 @@ public class ImageResizer {
                 if (b==width/2){continue;}
                 try {
                     RGBA rgba = new RGBA();
-                    rgba.setAlpha((imagePixelsRGBA[i][j].getAlpha() +
-                            imagePixelsRGBA[i + 1][j].getAlpha() +
-                            imagePixelsRGBA[i + 1][j + 1].getAlpha() +
-                            imagePixelsRGBA[i][j + 1].getAlpha()) / 4);
-                    rgba.setRed((imagePixelsRGBA[i][j].getRed() +
-                            imagePixelsRGBA[i + 1][j].getRed() +
-                            imagePixelsRGBA[i + 1][j + 1].getRed() +
-                            imagePixelsRGBA[i][j + 1].getRed()) / 4);
-                    rgba.setGreen((imagePixelsRGBA[i][j].getGreen() +
-                            imagePixelsRGBA[i + 1][j].getGreen() +
-                            imagePixelsRGBA[i + 1][j + 1].getGreen() +
-                            imagePixelsRGBA[i][j + 1].getGreen()) / 4);
-                    rgba.setBlue((imagePixelsRGBA[i][j].getBlue() +
-                            imagePixelsRGBA[i][j].getBlue() +
-                            imagePixelsRGBA[i][j].getBlue() +
-                            imagePixelsRGBA[i][j].getBlue()) / 4);
+                    List<Integer> integerList = new LinkedList<>();
+                    integerList.add(imagePixelsRGBA[i][j].getAlpha());
+                    integerList.add(imagePixelsRGBA[i + 1][j].getAlpha());
+                    integerList.add(imagePixelsRGBA[i + 1][j + 1].getAlpha());
+                    integerList.add(imagePixelsRGBA[i][j + 1].getAlpha());
+                    rgba.setAlpha(arithmeticMean(integerList));
+                    integerList.clear();
+
+                    integerList.add(imagePixelsRGBA[i][j].getRed());
+                    integerList.add(imagePixelsRGBA[i + 1][j].getRed());
+                    integerList.add(imagePixelsRGBA[i + 1][j + 1].getRed());
+                    integerList.add(imagePixelsRGBA[i][j + 1].getRed());
+                    rgba.setRed(arithmeticMean(integerList));
+                    integerList.clear();
+
+                    integerList.add(imagePixelsRGBA[i][j].getGreen());
+                    integerList.add(imagePixelsRGBA[i + 1][j].getGreen());
+                    integerList.add(imagePixelsRGBA[i + 1][j + 1].getGreen());
+                    integerList.add(imagePixelsRGBA[i][j + 1].getGreen());
+                    rgba.setGreen(arithmeticMean(integerList));
+                    integerList.clear();
+
+                    integerList.add(imagePixelsRGBA[i][j].getBlue());
+                    integerList.add(imagePixelsRGBA[i + 1][j].getBlue());
+                    integerList.add(imagePixelsRGBA[i + 1][j + 1].getBlue());
+                    integerList.add(imagePixelsRGBA[i][j + 1].getBlue());
+                    rgba.setBlue(arithmeticMean(integerList));
+                    integerList.clear();
+
 
                     meanedRgbArray[a][b] = rgba;
                 } catch (Exception e) {
@@ -146,5 +166,45 @@ public class ImageResizer {
         }
 
         exportImage(meanedRgbArray, height / 2, width / 2);
+    }
+
+    private Integer getMean(List<Integer> integerList, MeanOption meanOption) {
+        if (meanOption == MeanOption.ARITHMATIC_MEAN) {
+            return arithmeticMean(integerList);
+        } else if (meanOption == MeanOption.GEOMETRIC_MEAN) {
+            return geometricMean(integerList);
+        } else if (meanOption == MeanOption.HARMONIC_MEAN) {
+            return harmonicMean(integerList);
+        }
+
+        return null;
+    }
+
+    private Integer arithmeticMean(List<Integer> integerList) {
+        Integer zero = 0;
+        Long sum = zero.longValue();
+        for (int i = 0; i < integerList.size(); i++) {
+            sum += integerList.get(i).longValue();
+        }
+        return Long.valueOf(sum / integerList.size()).intValue();
+    }
+
+    private Integer geometricMean(List<Integer> integerList) {
+        Integer one = 1;
+        Long multiplication = one.longValue();
+        for (int i = 0; i < integerList.size(); i++) {
+            multiplication *= integerList.get(i).longValue();
+        }
+
+        return Long.valueOf(multiplication / integerList.size()).intValue();
+    }
+
+    private Integer harmonicMean(List<Integer> integerList) {
+        Integer zero = 0;
+        Long sum = zero.longValue();
+        for (int i = 0; i < integerList.size(); i++) {
+            sum += integerList.get(i).longValue();
+        }
+        return Long.valueOf(sum / integerList.size()).intValue();
     }
 }
