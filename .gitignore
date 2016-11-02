@@ -1,6 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 *.iml
 .idea
-.xml
-*.class
 out
+*.xml
+*.class
