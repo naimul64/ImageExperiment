@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
 /**
@@ -16,9 +18,28 @@ public class ImageResizer {
     Logger logger = Logger.getLogger(this.getClass().getName().toString());
 
     enum MeanOption {
-        ARITHMATIC_MEAN,
-        GEOMETRIC_MEAN,
-        HARMONIC_MEAN
+        ARITHMATIC_MEAN(1),
+        GEOMETRIC_MEAN(2),
+        HARMONIC_MEAN(3);
+
+        int meanCode;
+
+        MeanOption(int i) {
+            meanCode = i;
+        }
+
+        public int getMeanCode() {
+            return meanCode;
+        }
+
+        public static MeanOption getByCode(int code) {
+            for (MeanOption m : MeanOption.values()) {
+                if (m.getMeanCode() == code) {
+                    return m;
+                }
+            }
+            return null;
+        }
     }
 
     void getImageFile() {
@@ -71,8 +92,8 @@ public class ImageResizer {
         int h = 0, w = 0;
 
         try {
-            for (h = 0; h < height; h++) {
-                for (w = 0; w < width; w++) {
+            for (w = 0; w < width; w++) {
+                for (h = 0; h < height; h++) {
                     int pixel = bufferedImage.getRGB(w, h);
                     RGBA rgba = getPixelRgba(pixel);
                     imageRgbValue[h][w] = rgba;
@@ -85,7 +106,7 @@ public class ImageResizer {
         return imageRgbValue;
     }
 
-    private void exportImage(RGBA[][] imageRgbaValue, int height, int width) {
+    private void exportImage(RGBA[][] imageRgbaValue, int height, int width, MeanOption meanOption) {
         BufferedImage bufferedImage = new BufferedImage(height, width, BufferedImage.TYPE_INT_ARGB);
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
@@ -97,7 +118,7 @@ public class ImageResizer {
 
         try {
             // retrieve image
-            File outputfile = new File("saved.png");
+            File outputfile = new File("CreatedBy" + meanOption.toString() + ".png");
             ImageIO.write(bufferedImage, "png", outputfile);
         } catch (IOException e) {
             System.out.println("Failed to create image");
@@ -119,6 +140,13 @@ public class ImageResizer {
     }
 
     private void resizeImageByHalf(RGBA[][] imagePixelsRGBA, Integer height, Integer width) {
+        Integer meanType = new Integer("0");
+        Scanner reader = new Scanner(System.in);
+        while (!Arrays.asList(1,2,3).contains(meanType)) {
+            System.out.print("Please input your choise. 1 for Arithmatic mean, 2 for geometric mean, 3 for harmonic mean: ");
+            meanType = reader.nextInt();
+        }
+
         RGBA[][] meanedRgbArray = new RGBA[height / 2][width / 2];
         int a = 0, b = 0, i = 0, j = 0;
         for (a = 0, i = 0; i < height; i += 2, a++) {
@@ -132,28 +160,28 @@ public class ImageResizer {
                     integerList.add(imagePixelsRGBA[i + 1][j].getAlpha());
                     integerList.add(imagePixelsRGBA[i + 1][j + 1].getAlpha());
                     integerList.add(imagePixelsRGBA[i][j + 1].getAlpha());
-                    rgba.setAlpha(arithmeticMean(integerList));
+                    rgba.setAlpha(getMeanValue(meanType, integerList));
                     integerList.clear();
 
                     integerList.add(imagePixelsRGBA[i][j].getRed());
                     integerList.add(imagePixelsRGBA[i + 1][j].getRed());
                     integerList.add(imagePixelsRGBA[i + 1][j + 1].getRed());
                     integerList.add(imagePixelsRGBA[i][j + 1].getRed());
-                    rgba.setRed(arithmeticMean(integerList));
+                    rgba.setRed(getMeanValue(meanType, integerList));
                     integerList.clear();
 
                     integerList.add(imagePixelsRGBA[i][j].getGreen());
                     integerList.add(imagePixelsRGBA[i + 1][j].getGreen());
                     integerList.add(imagePixelsRGBA[i + 1][j + 1].getGreen());
                     integerList.add(imagePixelsRGBA[i][j + 1].getGreen());
-                    rgba.setGreen(arithmeticMean(integerList));
+                    rgba.setGreen(getMeanValue(meanType, integerList));
                     integerList.clear();
 
                     integerList.add(imagePixelsRGBA[i][j].getBlue());
                     integerList.add(imagePixelsRGBA[i + 1][j].getBlue());
                     integerList.add(imagePixelsRGBA[i + 1][j + 1].getBlue());
                     integerList.add(imagePixelsRGBA[i][j + 1].getBlue());
-                    rgba.setBlue(arithmeticMean(integerList));
+                    rgba.setBlue(getMeanValue(meanType, integerList));
                     integerList.clear();
 
 
@@ -165,7 +193,31 @@ public class ImageResizer {
             }
         }
 
-        exportImage(meanedRgbArray, height / 2, width / 2);
+        exportImage(meanedRgbArray, height / 2, width / 2, MeanOption.getByCode(meanType));
+    }
+
+    private Integer getMeanValue(Integer meanType, List<Integer> integerList) {
+        if (meanType == MeanOption.ARITHMATIC_MEAN.getMeanCode()) {
+            return arithmeticMean(integerList);
+        }else if (meanType == MeanOption.GEOMETRIC_MEAN.getMeanCode()) {
+            return geometricMean(integerList);
+        }if (meanType == MeanOption.HARMONIC_MEAN.getMeanCode()) {
+            return harmonicMean(integerList);
+        }
+
+        return null;
+    }
+
+    private MeanOption getMeanEnum(Integer meanType) {
+        if (meanType == 1) {
+            return MeanOption.ARITHMATIC_MEAN;
+        } else if (meanType == 2) {
+            return MeanOption.GEOMETRIC_MEAN;
+        } else if (meanType == 3) {
+            return MeanOption.HARMONIC_MEAN;
+        }
+
+        return null;
     }
 
     private Integer getMean(List<Integer> integerList, MeanOption meanOption) {
